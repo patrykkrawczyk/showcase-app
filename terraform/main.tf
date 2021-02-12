@@ -1,4 +1,13 @@
 terraform {
+  required_version = ">= 0.13.1"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.27.0"
+    }
+  }
+
   backend "s3" {
     bucket = "loki-bay-infrastructure-4659b377-379f-b298-ccc1-04e0dfa7fe9a"
     key    = "terraform/infrastructure/terraform.tfstate"

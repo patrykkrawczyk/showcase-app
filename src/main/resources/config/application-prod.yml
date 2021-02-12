@@ -7,7 +7,7 @@ spring:
     type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:postgresql://${PROD_DB_HOST}:5432/postgres
     username: ${PROD_DB_USERNAME}
-    password: ${PRDO_DB_PASSWORD}
+    password: ${PROD_DB_PASSWORD}
     hikari:
       poolName: Hikari
       auto-commit: false
