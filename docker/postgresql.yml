@@ -1,0 +1,10 @@
+version: '2'
+services:
+  showcase-postgresql:
+    image: postgres:12.3
+    environment:
+      - POSTGRES_USER=showcase
+      - POSTGRES_PASSWORD=
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - 5432:5432

@@ -1,0 +1,104 @@
+version: 2.1
+
+orbs:
+  terraform: circleci/terraform@1.2.0
+  aws-ecr: circleci/aws-ecr@6.12.2
+  aws-cli: circleci/aws-cli@1.3.0
+
+jobs:
+  compile-test-package:
+    docker:
+      - image: circleci/openjdk:11-jdk-stretch
+    steps:
+      - checkout
+      - restore_cache:
+          key: showcase-service-cache-{{ checksum "pom.xml" }}
+      - run:
+          name: Download dependencies
+          command: mvn dependency:go-offline
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: showcase-service-cache-{{ checksum "pom.xml" }}
+      - run:
+          name: Run tests
+          command: mvn verify
+      - run:
+          name: Build jar
+          command: mvn package
+      - run:
+          name: Unpack fat jar
+          command: mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
+      - persist_to_workspace:
+          root: .
+          paths:
+            - target/dependency/*
+            - Dockerfile
+
+  plan:
+    working_directory: /tmp/project
+    executor: terraform/default
+    steps:
+      - checkout
+      - run:
+          name: terraform init & plan
+          command: |
+            cd terraform
+            terraform init -input=false
+            terraform validate -no-color
+            terraform plan -input=false -var-file=prod.tfvars  -out=planned.tfplan
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+  apply:
+    executor: terraform/default
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: terraform
+          command: |
+            cd terraform
+            terraform apply planned.tfplan
+
+  update-ecs-service:
+    executor: aws-cli/default
+    steps:
+      - attach_workspace:
+          at: .
+      - aws-cli/setup:
+          aws-region: AWS_REGION
+      - run:
+          name: update ecs service
+          command: |
+            cd deployment
+            IMAGE=${SERVICE_IMAGE} ./deploy.sh update
+            cat generated/TASKDEF.json
+
+workflows:
+  compile-test-package-deploy:
+    jobs:
+      - compile-test-package
+      - plan:
+          context: production
+      - aws-ecr/build-and-push-image:
+          repo: "${AWS_ECR_NAME}"
+          tag: latest
+          attach-workspace: true
+          context: production
+          requires:
+            - compile-test-package
+            - plan
+      - apply:
+          context: production
+          requires:
+            - compile-test-package
+            - plan
+            - aws-ecr/build-and-push-image
+      - update-ecs-service:
+          name: update-ecs-service
+          context: production
+          requires:
+            - apply
