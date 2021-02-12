@@ -1,0 +1,21 @@
+logging:
+  level:
+    pro.patrykkrawczyk.showcase: INFO
+
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:postgresql://${PROD_DB_HOST}:5432/postgres
+    username: ${PROD_DB_USERNAME}
+    password: ${PRDO_DB_PASSWORD}
+    hikari:
+      poolName: Hikari
+      auto-commit: false
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQL10Dialect
+    show-sql: false
+  liquibase:
+    contexts: prod
+
+server:
+  port: 8080
