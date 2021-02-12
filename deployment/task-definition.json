@@ -1,0 +1,37 @@
+{
+  "family": "showcase-service",
+  "executionRoleArn": "arn:aws:iam::631572178930:role/ecs/prod_showcase_default_task",
+  "containerDefinitions": [
+    {
+      "name": "showcase-service",
+      "image": "@@VERSION@@",
+      "memory": 512,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment":  [
+        {
+          "name" : "SPRING_PROFILES_ACTIVE",
+          "value" : "prod"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "PROD_DB_HOST",
+          "valueFrom": "arn:aws:ssm:eu-west-1:631572178930:parameter/showcase/db/host"
+        },
+        {
+          "name": "PROD_DB_USERNAME",
+          "valueFrom": "arn:aws:ssm:eu-west-1:631572178930:parameter/showcase/db/username"
+        },
+        {
+          "name": "PROD_DB_PASSWORD",
+          "valueFrom": "arn:aws:ssm:eu-west-1:631572178930:parameter/showcase/db/password"
+        }
+      ]
+    }
+  ]
+}

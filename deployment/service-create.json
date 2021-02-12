@@ -1,0 +1,17 @@
+{
+    "cluster": "showcase",
+    "serviceName": "showcase-service",
+    "taskDefinition": "@@TASKDEFINITION_ARN@@",
+    "desiredCount": 1,
+    "loadBalancers": [
+        {
+            "targetGroupArn": "arn:aws:elasticloadbalancing:eu-west-1:631572178930:targetgroup/prod-showcase-default/a2f9f4e38adffc0e",
+            "containerName": "showcase-service",
+            "containerPort": 8080
+        }
+    ],
+    "deploymentConfiguration": {
+        "maximumPercent": 100,
+        "minimumHealthyPercent": 0
+    }
+}
